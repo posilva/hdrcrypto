@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  app:
+    build:
+      dockerfile: Dockerfile
+      context: .
+      target: builder
+    volumes:
+        - .:/app
+    environment:
+      HDRCRYPTO_SERVER_ADDR: ":3000"
+    ports:
+      - "3000:3000"
