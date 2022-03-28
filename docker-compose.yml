@@ -8,6 +8,6 @@ services:
     volumes:
         - .:/app
     environment:
-      HDRCRYPTO_SERVER_ADDR: ":3000"
+      HDRCRYPTO_ADDRESS: ":3000"
     ports:
       - "3000:3000"

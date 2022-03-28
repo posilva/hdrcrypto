@@ -1,8 +1,8 @@
 hdrcrypto:
 	go build ./cmd/hdrcrypto
 
-.PHONY: run-hdrcrypto
-run-hdrcrypto:
+.PHONY: run
+run:
 	go run ./cmd/hdrcrypto
 
 .PHONY: docker-build

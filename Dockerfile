@@ -21,5 +21,5 @@ COPY --from=builder /build/hdrcrypto .
 # This container exposes port 8080 to the outside world
 EXPOSE 3000
 
-# Run the binary program produced by `go install`
-CMD ["/app/hdrcrypto"]
+ENTRYPOINT ["/app/hdrcrypto"]
+CMD ["serve"]

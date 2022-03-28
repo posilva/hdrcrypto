@@ -1,14 +1,18 @@
 package main
 
 import (
-	"net/http"
-	"os"
-
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"hdrcrypto/cmd"
+	"net/http"
+	"os"
 )
 
 func main() {
+	cmd.Execute()
+}
+
+func serve() {
 	e := echo.New()
 
 	e.Use(middleware.RequestID())
@@ -24,4 +28,5 @@ func main() {
 		address = ":3000"
 	}
 	e.Logger.Fatal(e.Start(address))
+
 }
