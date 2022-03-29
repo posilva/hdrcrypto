@@ -42,8 +42,8 @@ var serveCmd = &cobra.Command{
 		e.Use(middleware.Logger())
 		e.Use(middleware.Recover())
 
-		e.GET("/", func(c echo.Context) error {
-			return c.String(http.StatusOK, "Hello, World!")
+		e.GET("/health", func(c echo.Context) error {
+			return c.String(http.StatusOK, "OK")
 		})
 		address := v.GetString("address")
 		fmt.Println(address)

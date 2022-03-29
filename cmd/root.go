@@ -33,7 +33,12 @@ func Execute() {
 	}
 }
 
+type ConfigurationYaml struct {
+	TokenId string
+}
+
 var v *viper.Viper
+var AppConfig ConfigurationYaml
 
 func init() {
 	v = viper.New()
@@ -43,8 +48,7 @@ func init() {
 
 	// setup config file
 	v.SetConfigName(defaultConfigFilename)
-	v.SetConfigType("yaml")
-	v.AddConfigPath("$HOME/.hdrcrypto")
+	v.SetConfigType("yml")
 	v.AddConfigPath(".")
 
 	// read configuration
@@ -58,6 +62,11 @@ func init() {
 	// setup environment variables configuration
 	v.SetEnvPrefix(envPrefix)
 	v.AutomaticEnv()
+
+	err := v.Unmarshal(&AppConfig)
+	if err != nil {
+		panic(err)
+	}
 
 	// watching for config changes
 	v.OnConfigChange(func(e fsnotify.Event) {

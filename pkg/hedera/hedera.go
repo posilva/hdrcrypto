@@ -24,7 +24,6 @@ type Token struct {
 }
 
 func CreateToken(client *HDRClient, config TokenConfig) (*Token, error) {
-
 	tokenCreateTransaction, err := hedera.NewTokenCreateTransaction().
 		SetTokenName(config.Name).
 		SetTokenSymbol(config.Symbol).
