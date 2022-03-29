@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	defaultConfigFilename = ".hdrcrypto"
+	defaultConfigFilename = "hdrcrypto"
 	envPrefix             = "HDRCRYPTO"
 )
 
