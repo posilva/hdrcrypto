@@ -45,7 +45,7 @@ var serveCmd = &cobra.Command{
 		e.GET("/health", func(c echo.Context) error {
 			return c.String(http.StatusOK, "OK")
 		})
-		address := v.GetString("address")
+		address := viperConfig.GetString("address")
 		fmt.Println(address)
 		e.Logger.Fatal(e.Start(address))
 	},
@@ -54,5 +54,5 @@ var serveCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(serveCmd)
 	serveCmd.Flags().StringP("address", "a", ":3000", "Server Address")
-	v.BindPFlag("address", serveCmd.Flags().Lookup("address"))
+	viperConfig.BindPFlag("address", serveCmd.Flags().Lookup("address"))
 }

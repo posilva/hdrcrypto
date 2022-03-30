@@ -6,6 +6,7 @@ import (
 )
 
 type AccountEntity struct {
+	Name       string
 	Account    hedera.AccountID
 	PrivateKey hedera.PrivateKey
 }
@@ -19,8 +20,8 @@ type TokenConfig struct {
 }
 
 type Token struct {
-	id     hedera.TokenID
-	config TokenConfig
+	Id     hedera.TokenID
+	Config TokenConfig
 }
 
 func CreateToken(client *HDRClient, config TokenConfig) (*Token, error) {
@@ -60,18 +61,44 @@ func CreateToken(client *HDRClient, config TokenConfig) (*Token, error) {
 		SetDenominatingTokenID(tokenId)
 
 	return &Token{
-		id:     tokenId,
-		config: config,
+		Id:     tokenId,
+		Config: config,
 	}, nil
 }
 
-func (t *Token) Display() {
-	fmt.Printf("[%s] Id: %s ",
-		t.config.Symbol,
-		t.id.String())
+func (t *Token) String() string {
+	return fmt.Sprintf("[%s] Id: %s ",
+		t.Config.Symbol,
+		t.Id.String())
 }
 
-func CreateAccountEntity(client *HDRClient, initialBalance float64) (*AccountEntity, error) {
+func CreateTokenFromInfo(client *HDRClient, id string) (*Token, error) {
+	tokenID, err := hedera.TokenIDFromString(id)
+	if err != nil {
+		return nil, err
+	}
+	query := hedera.NewTokenInfoQuery()
+	info, err := query.SetTokenID(tokenID).
+		Execute(client.Get())
+	if err != nil {
+		return nil, err
+	}
+	return fromTokenInfo(info), nil
+}
+
+func fromTokenInfo(info hedera.TokenInfo) *Token {
+	return &Token{
+		Id: info.TokenID,
+		Config: TokenConfig{
+			Name:          info.Name,
+			Symbol:        info.Symbol,
+			Decimals:      uint(info.Decimals),
+			InitialSupply: info.TotalSupply,
+		},
+	}
+}
+
+func CreateAccountEntity(client *HDRClient, name string, initialBalance float64) (*AccountEntity, error) {
 	treasuryKey, err := hedera.PrivateKeyGenerateEd25519()
 	if err != nil {
 		return nil, err
@@ -91,14 +118,15 @@ func CreateAccountEntity(client *HDRClient, initialBalance float64) (*AccountEnt
 	}
 
 	return &AccountEntity{
+		Name:       name,
 		Account:    *receipt.AccountID,
 		PrivateKey: treasuryKey,
 	}, nil
 }
 
-func (a AccountEntity) Display(name string) {
-	fmt.Printf("%s Account: %s, PrivateKey: %s \n",
-		name,
+func (a AccountEntity) String() string {
+	return fmt.Sprintf("%s Account: %s, PrivateKey: %s \n",
+		a.Name,
 		a.Account.String(),
 		a.PrivateKey.StringRaw())
 }

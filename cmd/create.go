@@ -23,6 +23,7 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"hdrcrypto/pkg/hedera"
 )
@@ -35,18 +36,28 @@ var createCmd = &cobra.Command{
 }
 
 func runCommand(_ *cobra.Command, _ []string) {
-	config := hedera.TokenConfig{
-		Name:                  "HDR Crypto",
-		Symbol:                "HDR",
-		MaxTransactionFeeHbar: 30,
-		InitialSupply:         5000,
-		Decimals:              2,
+	if AppConfig.TokenId == "" || viperConfig.GetBool("force") {
+		config := hedera.TokenConfig{
+			Name:                  "HDR Crypto",
+			Symbol:                "HDR",
+			MaxTransactionFeeHbar: 30,
+			InitialSupply:         5000,
+			Decimals:              2,
+		}
+		token, err := hedera.CreateToken(hdrClient, config)
+		if err != nil {
+			panic(err)
+		}
+
+		log.Info().Msgf("created new token: %s", token)
+	} else {
+		token, err := hedera.CreateTokenFromInfo(hdrClient, AppConfig.TokenId)
+		if err != nil {
+			panic(err)
+		}
+
+		log.Info().Msgf("loading token from hedera: %s", token)
 	}
-	token, err := hedera.CreateToken(hdrClient, config)
-	if err != nil {
-		panic(err)
-	}
-	token.Display()
 }
 
 func init() {

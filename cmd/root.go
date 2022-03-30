@@ -7,6 +7,8 @@ package cmd
 import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/pkgerrors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
@@ -27,6 +29,9 @@ var rootCmd = &cobra.Command{
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
+
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
@@ -37,40 +42,41 @@ type ConfigurationYaml struct {
 	TokenId string
 }
 
-var v *viper.Viper
+var viperConfig *viper.Viper
 var AppConfig ConfigurationYaml
 
 func init() {
-	v = viper.New()
+	viperConfig = viper.New()
 
 	// set the configs defaults
-	v.SetDefault("address", ":3000")
+
+	viperConfig.SetDefault("address", ":3000")
 
 	// setup config file
-	v.SetConfigName(defaultConfigFilename)
-	v.SetConfigType("yml")
-	v.AddConfigPath(".")
+	viperConfig.SetConfigName(defaultConfigFilename)
+	viperConfig.SetConfigType("yml")
+	viperConfig.AddConfigPath(".")
 
 	// read configuration
-	if err := v.ReadInConfig(); err != nil {
+	if err := viperConfig.ReadInConfig(); err != nil {
 		// It's okay if there isn't a config file
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			fmt.Errorf("Config file %s not found ", v.ConfigFileUsed())
+			fmt.Errorf("Config file %s not found ", viperConfig.ConfigFileUsed())
 		}
 	}
 
 	// setup environment variables configuration
-	v.SetEnvPrefix(envPrefix)
-	v.AutomaticEnv()
+	viperConfig.SetEnvPrefix(envPrefix)
+	viperConfig.AutomaticEnv()
 
-	err := v.Unmarshal(&AppConfig)
+	err := viperConfig.Unmarshal(&AppConfig)
 	if err != nil {
 		panic(err)
 	}
 
 	// watching for config changes
-	v.OnConfigChange(func(e fsnotify.Event) {
+	viperConfig.OnConfigChange(func(e fsnotify.Event) {
 		fmt.Println("Config file changed:", e.Name)
 	})
-	v.WatchConfig()
+	viperConfig.WatchConfig()
 }

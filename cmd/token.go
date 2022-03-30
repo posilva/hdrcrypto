@@ -39,7 +39,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		if v.Get("operator_id") == "" && v.Get("operator_key") == "" {
+		if viperConfig.Get("operator_id") == "" && viperConfig.Get("operator_key") == "" {
 			return errors.New("Required operator account id and/or private key not set ")
 		}
 		setupClient()
@@ -55,8 +55,8 @@ var hdrClient *hedera.HDRClient
 func setupClient() {
 	hdrClient = hedera.NewClientForTestNet()
 
-	opId := v.GetString("operator_id")
-	opKey := v.GetString("operator_key")
+	opId := viperConfig.GetString("operator_id")
+	opKey := viperConfig.GetString("operator_key")
 
 	err := hdrClient.Operator(opId, opKey)
 	if err != nil {
@@ -66,12 +66,14 @@ func setupClient() {
 
 func init() {
 	rootCmd.AddCommand(tokenCmd)
+	tokenCmd.PersistentFlags().BoolP("force", "f", false, "Force to execute the action")
+	viperConfig.BindPFlag("force", tokenCmd.PersistentFlags().Lookup("force"))
 
 	tokenCmd.Flags().String("operator_id", "", "Operator account id")
 	tokenCmd.Flags().String("operator_key", "", "Operator account private key")
 
-	_ = v.BindPFlag("operator_id", tokenCmd.Flags().Lookup("operator_id"))
-	_ = v.BindPFlag("operator_key", tokenCmd.Flags().Lookup("operator_key"))
-	_ = v.BindEnv("operator_id")
-	_ = v.BindEnv("operator_key")
+	_ = viperConfig.BindPFlag("operator_id", tokenCmd.Flags().Lookup("operator_id"))
+	_ = viperConfig.BindPFlag("operator_key", tokenCmd.Flags().Lookup("operator_key"))
+	_ = viperConfig.BindEnv("operator_id")
+	_ = viperConfig.BindEnv("operator_key")
 }
