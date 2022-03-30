@@ -28,15 +28,11 @@ import (
 	"hdrcrypto/pkg/hedera"
 )
 
-var createCmd = &cobra.Command{
+var tokenCreateCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Command to create a Fungible Token.",
 	Long:  `Command to create a Fungible Token.`,
-	Run:   runCommand,
-}
-
-func runCommand(_ *cobra.Command, _ []string) {
-	if AppConfig.TokenId == "" || viperConfig.GetBool("force") {
+	Run: func(cmd *cobra.Command, args []string) {
 		config := hedera.TokenConfig{
 			Name:                  "HDR Crypto",
 			Symbol:                "HDR",
@@ -49,17 +45,10 @@ func runCommand(_ *cobra.Command, _ []string) {
 			panic(err)
 		}
 
-		log.Info().Msgf("created new token: %s", token)
-	} else {
-		token, err := hedera.CreateTokenFromInfo(hdrClient, AppConfig.TokenId)
-		if err != nil {
-			panic(err)
-		}
-
-		log.Info().Msgf("loading token from hedera: %s", token)
-	}
+		log.Info().Msgf("Created new token: %s", token)
+	},
 }
 
 func init() {
-	tokenCmd.AddCommand(createCmd)
+	tokenCmd.AddCommand(tokenCreateCmd)
 }

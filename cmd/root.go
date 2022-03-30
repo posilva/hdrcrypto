@@ -11,11 +11,15 @@ import (
 	"github.com/rs/zerolog/pkgerrors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"hdrcrypto/pkg/hedera"
 	"os"
+	"path/filepath"
 )
 
 const (
 	defaultConfigFilename = "hdrcrypto"
+	defaultConfigPath     = "."
+	defaultConfigType     = "yml"
 	envPrefix             = "HDRCRYPTO"
 )
 
@@ -42,6 +46,7 @@ type ConfigurationYaml struct {
 	TokenId string
 }
 
+var hdrClient *hedera.HDRClient
 var viperConfig *viper.Viper
 var AppConfig ConfigurationYaml
 
@@ -54,12 +59,12 @@ func init() {
 
 	// setup config file
 	viperConfig.SetConfigName(defaultConfigFilename)
-	viperConfig.SetConfigType("yml")
-	viperConfig.AddConfigPath(".")
+
+	viperConfig.SetConfigType(defaultConfigType)
+	viperConfig.AddConfigPath(defaultConfigPath)
 
 	// read configuration
 	if err := viperConfig.ReadInConfig(); err != nil {
-		// It's okay if there isn't a config file
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			fmt.Errorf("Config file %s not found ", viperConfig.ConfigFileUsed())
 		}
@@ -78,5 +83,24 @@ func init() {
 	viperConfig.OnConfigChange(func(e fsnotify.Event) {
 		fmt.Println("Config file changed:", e.Name)
 	})
+
 	viperConfig.WatchConfig()
+
+	setupClient()
+}
+
+func setupClient() {
+	hdrClient = hedera.NewClientForTestNet()
+
+	opId := viperConfig.GetString("operator_id")
+	opKey := viperConfig.GetString("operator_key")
+
+	err := hdrClient.Operator(opId, opKey)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func ConfigFileNamePath() string {
+	return filepath.Join(defaultConfigPath, defaultConfigFilename) + "." + defaultConfigType
 }
