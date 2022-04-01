@@ -24,10 +24,12 @@ package cmd
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/spf13/cobra"
-	"net/http"
+	"github.com/spf13/viper"
 )
 
 // serveCmd represents the serve command
@@ -45,7 +47,7 @@ var serveCmd = &cobra.Command{
 		e.GET("/health", func(c echo.Context) error {
 			return c.String(http.StatusOK, "OK")
 		})
-		address := viperConfig.GetString("address")
+		address := viper.GetString("address")
 		fmt.Println(address)
 		e.Logger.Fatal(e.Start(address))
 	},
@@ -54,5 +56,5 @@ var serveCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(serveCmd)
 	serveCmd.Flags().StringP("address", "a", ":3000", "Server Address")
-	viperConfig.BindPFlag("address", serveCmd.Flags().Lookup("address"))
+	viper.BindPFlag("address", serveCmd.Flags().Lookup("address"))
 }

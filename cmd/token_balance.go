@@ -26,19 +26,18 @@ import (
 	"github.com/hashgraph/hedera-sdk-go/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var tokenBalanceCmd = &cobra.Command{
 	Use:   "balance",
-	Short: "Command to create a Fungible Token.",
-	Long:  `Command to create a Fungible Token.`,
+	Short: "Command to get the Fungible Token balance to a given token.",
+	Long:  `Command to get the Fungible Token balance to a given token.`,
 	Run: func(cmd *cobra.Command, args []string) {
-
-		//Create the account balance query
 		account := hdrClient.OperatorAccount()
 
-		if viperConfig.IsSet("account") {
-			a, err := hedera.AccountIDFromString(viperConfig.GetString("account"))
+		if viper.IsSet("account") {
+			a, err := hedera.AccountIDFromString(viper.GetString("account"))
 			if err != nil {
 				panic(err)
 			}
@@ -60,5 +59,5 @@ var tokenBalanceCmd = &cobra.Command{
 func init() {
 	tokenCmd.AddCommand(tokenBalanceCmd)
 	tokenBalanceCmd.Flags().StringP("account", "a", "", "Target Account Id")
-	viperConfig.BindPFlag("account", tokenBalanceCmd.Flags().Lookup("account"))
+	viper.BindPFlag("account", tokenBalanceCmd.Flags().Lookup("account"))
 }

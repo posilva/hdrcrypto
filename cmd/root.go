@@ -6,15 +6,21 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/fsnotify/fsnotify"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/pkgerrors"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"hdrcrypto/pkg/hedera"
 	"os"
 	"path/filepath"
+
+	"github.com/fsnotify/fsnotify"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog/pkgerrors"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
+
+type ConfigurationYaml struct {
+	TokenId string
+}
 
 const (
 	defaultConfigFilename = "hdrcrypto"
@@ -22,6 +28,9 @@ const (
 	defaultConfigType     = "yml"
 	envPrefix             = "HDRCRYPTO"
 )
+
+var hdrClient *hedera.HDRClient
+var AppConfig ConfigurationYaml
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -42,49 +51,38 @@ func Execute() {
 	}
 }
 
-type ConfigurationYaml struct {
-	TokenId string
-}
-
-var hdrClient *hedera.HDRClient
-var viperConfig *viper.Viper
-var AppConfig ConfigurationYaml
-
 func init() {
-	viperConfig = viper.New()
 
-	// set the configs defaults
-
-	viperConfig.SetDefault("address", ":3000")
+	viper.SetDefault("address", ":3000")
 
 	// setup config file
-	viperConfig.SetConfigName(defaultConfigFilename)
+	viper.SetConfigName(defaultConfigFilename)
 
-	viperConfig.SetConfigType(defaultConfigType)
-	viperConfig.AddConfigPath(defaultConfigPath)
+	viper.SetConfigType(defaultConfigType)
+	viper.AddConfigPath(defaultConfigPath)
 
 	// read configuration
-	if err := viperConfig.ReadInConfig(); err != nil {
+	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			fmt.Errorf("Config file %s not found ", viperConfig.ConfigFileUsed())
+			fmt.Errorf("Config file %s not found ", viper.ConfigFileUsed())
 		}
 	}
 
 	// setup environment variables configuration
-	viperConfig.SetEnvPrefix(envPrefix)
-	viperConfig.AutomaticEnv()
+	viper.SetEnvPrefix(envPrefix)
+	viper.AutomaticEnv()
 
-	err := viperConfig.Unmarshal(&AppConfig)
+	err := viper.Unmarshal(&AppConfig)
 	if err != nil {
 		panic(err)
 	}
 
 	// watching for config changes
-	viperConfig.OnConfigChange(func(e fsnotify.Event) {
+	viper.OnConfigChange(func(e fsnotify.Event) {
 		fmt.Println("Config file changed:", e.Name)
 	})
 
-	viperConfig.WatchConfig()
+	viper.WatchConfig()
 
 	setupClient()
 }
@@ -92,9 +90,14 @@ func init() {
 func setupClient() {
 	hdrClient = hedera.NewClientForTestNet()
 
-	opId := viperConfig.GetString("operator_id")
-	opKey := viperConfig.GetString("operator_key")
+	opId := viper.GetString("operator_id")
+	opKey := viper.GetString("operator_key")
 
+	if opId == "" || opKey == "" {
+		log.Fatal().Msgf("required parameters operator_id or operator_key missing")
+		return
+
+	}
 	err := hdrClient.Operator(opId, opKey)
 	if err != nil {
 		panic(err)

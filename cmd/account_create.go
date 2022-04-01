@@ -23,18 +23,33 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"hdrcrypto/pkg/hedera"
+
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // tokenCmd represents the token command
-var accountCmd = &cobra.Command{
-	Use:   "account",
-	Short: "Allow to manage accounts",
-	Long:  `Allow to manage accounts`,
+var accountCreateCmd = &cobra.Command{
+	Use:   "create",
+	Short: "Allow to create an account",
+	Long:  `Allow to create an account`,
 	Run: func(cmd *cobra.Command, args []string) {
+		account, err := hedera.CreateAccountEntity(hdrClient, viper.GetString("name"), viper.GetFloat64("balance"))
+		if err != nil {
+			panic(err)
+		}
+		log.Info().Msgf("created account: %v", account)
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(accountCmd)
+	accountCmd.AddCommand(accountCreateCmd)
+	accountCreateCmd.Flags().StringP("name", "n", "", "Name of the account")
+	accountCreateCmd.Flags().Float64P("balance", "b", 1, "Initial balance of hbar")
+	viper.BindPFlag("name", accountCreateCmd.Flags().Lookup("name"))
+	accountCreateCmd.MarkFlagRequired("name")
+	viper.BindPFlag("balance", accountCreateCmd.Flags().Lookup("balance"))
+	accountCreateCmd.MarkFlagRequired("balance")
 }

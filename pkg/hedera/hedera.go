@@ -2,6 +2,7 @@ package hedera
 
 import (
 	"fmt"
+
 	"github.com/hashgraph/hedera-sdk-go/v2"
 )
 
@@ -99,20 +100,20 @@ func fromTokenInfo(info hedera.TokenInfo) *Token {
 }
 
 func CreateAccountEntity(client *HDRClient, name string, initialBalance float64) (*AccountEntity, error) {
-	treasuryKey, err := hedera.PrivateKeyGenerateEd25519()
+	key, err := hedera.PrivateKeyGenerateEd25519()
 	if err != nil {
 		return nil, err
 	}
 
-	treasuryAccount, err := hedera.NewAccountCreateTransaction().
-		SetKey(treasuryKey.PublicKey()).
+	account, err := hedera.NewAccountCreateTransaction().
+		SetKey(key.PublicKey()).
 		SetInitialBalance(hedera.NewHbar(initialBalance)).
 		Execute(client.Get())
 	if err != nil {
 		return nil, err
 	}
 
-	receipt, err := treasuryAccount.GetReceipt(client.Get())
+	receipt, err := account.GetReceipt(client.Get())
 	if err != nil {
 		return nil, err
 	}
@@ -120,12 +121,12 @@ func CreateAccountEntity(client *HDRClient, name string, initialBalance float64)
 	return &AccountEntity{
 		Name:       name,
 		Account:    *receipt.AccountID,
-		PrivateKey: treasuryKey,
+		PrivateKey: key,
 	}, nil
 }
 
 func (a AccountEntity) String() string {
-	return fmt.Sprintf("%s Account: %s, PrivateKey: %s \n",
+	return fmt.Sprintf("[%s] Account: %s, PrivateKey: %s",
 		a.Name,
 		a.Account.String(),
 		a.PrivateKey.StringRaw())
