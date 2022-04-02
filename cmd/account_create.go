@@ -23,7 +23,7 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"hdrcrypto/pkg/hedera"
+	"hdrcrypto/pkg/hederalib"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -41,7 +41,7 @@ var accountCreateCmd = &cobra.Command{
 
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		account, err := hedera.CreateAccountEntity(hdrClient, viper.GetString("name"), viper.GetFloat64("balance"))
+		account, err := hederalib.NewAccount(hdrClient, viper.GetString("name"), viper.GetFloat64("balance"))
 		if err != nil {
 			panic(err)
 		}

@@ -24,14 +24,14 @@ package cmd
 
 import (
 	"errors"
-	"hdrcrypto/pkg/hedera"
+	"hdrcrypto/pkg/hederalib"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-var activeToken *hedera.Token
+var activeToken *hederalib.Token
 
 // tokenCmd represents the token command
 var tokenCmd = &cobra.Command{
@@ -61,7 +61,7 @@ var tokenCmd = &cobra.Command{
 
 func loadTokenFromConfig() {
 	if AppConfig.TokenId != "" {
-		token, err := hedera.CreateTokenFromInfo(hdrClient, AppConfig.TokenId)
+		token, err := hederalib.NewTokenFromInfo(hdrClient, AppConfig.TokenId)
 		if err != nil {
 			panic(err)
 		}

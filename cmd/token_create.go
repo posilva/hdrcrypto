@@ -23,7 +23,7 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"hdrcrypto/pkg/hedera"
+	"hdrcrypto/pkg/hederalib"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -34,14 +34,14 @@ var tokenCreateCmd = &cobra.Command{
 	Short: "Command to create a Fungible Token.",
 	Long:  `Command to create a Fungible Token.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		config := hedera.TokenConfig{
+		config := hederalib.TokenConfig{
 			Name:                  "HDR Crypto",
 			Symbol:                "HDR",
 			MaxTransactionFeeHbar: 30,
 			InitialSupply:         5000,
 			Decimals:              2,
 		}
-		token, err := hedera.CreateToken(hdrClient, config)
+		token, err := hederalib.NewToken(hdrClient, config)
 		if err != nil {
 			panic(err)
 		}

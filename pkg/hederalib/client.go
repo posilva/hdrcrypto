@@ -1,4 +1,4 @@
-package hedera
+package hederalib
 
 import (
 	"github.com/hashgraph/hedera-sdk-go/v2"

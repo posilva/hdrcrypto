@@ -1,16 +1,10 @@
-package hedera
+package hederalib
 
 import (
 	"fmt"
 
 	"github.com/hashgraph/hedera-sdk-go/v2"
 )
-
-type AccountEntity struct {
-	Name       string
-	Account    hedera.AccountID
-	PrivateKey hedera.PrivateKey
-}
 
 type TokenConfig struct {
 	Name                  string
@@ -25,7 +19,7 @@ type Token struct {
 	Config TokenConfig
 }
 
-func CreateToken(client *HDRClient, config TokenConfig) (*Token, error) {
+func NewToken(client *HDRClient, config TokenConfig) (*Token, error) {
 	tokenCreateTransaction, err := hedera.NewTokenCreateTransaction().
 		SetTokenName(config.Name).
 		SetTokenSymbol(config.Symbol).
@@ -73,7 +67,7 @@ func (t *Token) String() string {
 		t.Id.String())
 }
 
-func CreateTokenFromInfo(client *HDRClient, id string) (*Token, error) {
+func NewTokenFromInfo(client *HDRClient, id string) (*Token, error) {
 	tokenID, err := hedera.TokenIDFromString(id)
 	if err != nil {
 		return nil, err
@@ -97,37 +91,4 @@ func fromTokenInfo(info hedera.TokenInfo) *Token {
 			InitialSupply: info.TotalSupply,
 		},
 	}
-}
-
-func CreateAccountEntity(client *HDRClient, name string, initialBalance float64) (*AccountEntity, error) {
-	key, err := hedera.PrivateKeyGenerateEd25519()
-	if err != nil {
-		return nil, err
-	}
-
-	account, err := hedera.NewAccountCreateTransaction().
-		SetKey(key.PublicKey()).
-		SetInitialBalance(hedera.NewHbar(initialBalance)).
-		Execute(client.Get())
-	if err != nil {
-		return nil, err
-	}
-
-	receipt, err := account.GetReceipt(client.Get())
-	if err != nil {
-		return nil, err
-	}
-
-	return &AccountEntity{
-		Name:       name,
-		Account:    *receipt.AccountID,
-		PrivateKey: key,
-	}, nil
-}
-
-func (a AccountEntity) String() string {
-	return fmt.Sprintf("[%s] Account: %s, PrivateKey: %s",
-		a.Name,
-		a.Account.String(),
-		a.PrivateKey.StringRaw())
 }
