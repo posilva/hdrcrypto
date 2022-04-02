@@ -23,7 +23,6 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -37,6 +36,9 @@ var serveCmd = &cobra.Command{
 	Use:   "serve [-a address]",
 	Short: "Expose an HTTP server to interact with the service",
 	Long:  `Expose an HTTP server to interact with the service`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		viper.BindPFlag("address", cmd.Flags().Lookup("address"))
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		e := echo.New()
 
@@ -48,7 +50,6 @@ var serveCmd = &cobra.Command{
 			return c.String(http.StatusOK, "OK")
 		})
 		address := viper.GetString("address")
-		fmt.Println(address)
 		e.Logger.Fatal(e.Start(address))
 	},
 }
@@ -56,5 +57,4 @@ var serveCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(serveCmd)
 	serveCmd.Flags().StringP("address", "a", ":3000", "Server Address")
-	viper.BindPFlag("address", serveCmd.Flags().Lookup("address"))
 }

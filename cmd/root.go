@@ -5,7 +5,6 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"fmt"
 	"hdrcrypto/pkg/hedera"
 	"os"
 	"path/filepath"
@@ -64,7 +63,7 @@ func init() {
 	// read configuration
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			fmt.Errorf("Config file %s not found ", viper.ConfigFileUsed())
+			log.Error().Msgf("Config file %v not found ", viper.ConfigFileUsed())
 		}
 	}
 
@@ -79,11 +78,9 @@ func init() {
 
 	// watching for config changes
 	viper.OnConfigChange(func(e fsnotify.Event) {
-		fmt.Println("Config file changed:", e.Name)
+		log.Info().Msgf("Config file changed:", e.Name)
 	})
-
 	viper.WatchConfig()
-
 	setupClient()
 }
 

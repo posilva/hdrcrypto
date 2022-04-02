@@ -23,43 +23,36 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"github.com/hashgraph/hedera-sdk-go/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-var tokenBalanceCmd = &cobra.Command{
-	Use:   "balance",
-	Short: "Command to get the Fungible Token balance to a given token.",
-	Long:  `Command to get the Fungible Token balance to a given token.`,
+var tokenTransferCmd = &cobra.Command{
+	Use:   "transfer",
+	Short: "Command to trasfer a Fungible Token.",
+	Long:  `Command to transfer a Fungible Token.`,
 	PreRun: func(cmd *cobra.Command, args []string) {
+		viper.BindPFlag("key", cmd.Flags().Lookup("key"))
+		viper.BindPFlag("amount-value", cmd.Flags().Lookup("amount-value"))
 		viper.BindPFlag("account", cmd.Flags().Lookup("account"))
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		account := hdrClient.OperatorAccount()
-		if viper.IsSet("account") {
-			accountFlag := viper.GetString("account")
-			a, err := hedera.AccountIDFromString(accountFlag)
-			if err != nil {
-				panic(err)
-			}
-			account = a
-		}
-		query := hedera.NewAccountBalanceQuery().
-			SetAccountID(account)
 
-		accountBalance, err := query.Execute(hdrClient.Get())
-		if err != nil {
-			panic(err)
-		}
-
-		log.Info().Msgf("The [%v] token account balance for account '%v' is %v", activeToken.Config.Symbol, account, accountBalance.Tokens.Get(activeToken.Id))
-		log.Info().Msgf("The HBAR account balance for this account '%v' is %v", account, accountBalance.Hbars.String())
+		cmd.ParseFlags(args)
+		log.Logger.Info().Msgf("processing transfer: %v", args)
 	},
 }
 
 func init() {
-	tokenCmd.AddCommand(tokenBalanceCmd)
-	tokenBalanceCmd.Flags().StringP("account", "a", "", "Target Account Id")
+	tokenCmd.AddCommand(tokenTransferCmd)
+	tokenTransferCmd.Flags().StringP("account", "a", "", "Target account to transfer token ammount to")
+	tokenTransferCmd.MarkFlagRequired("account")
+
+	tokenTransferCmd.Flags().StringP("key", "k", "", "Target account private key to transfer token amount to")
+	tokenTransferCmd.MarkFlagRequired("key")
+
+	tokenTransferCmd.Flags().StringP("amount-value", "v", "", "Amount to be transfered to target account")
+	tokenTransferCmd.MarkFlagRequired("amount-value")
+
 }

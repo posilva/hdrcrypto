@@ -35,6 +35,11 @@ var accountCreateCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Allow to create an account",
 	Long:  `Allow to create an account`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		viper.BindPFlag("name", cmd.Flags().Lookup("name"))
+		viper.BindPFlag("balance", cmd.Flags().Lookup("balance"))
+
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		account, err := hedera.CreateAccountEntity(hdrClient, viper.GetString("name"), viper.GetFloat64("balance"))
 		if err != nil {
@@ -47,9 +52,7 @@ var accountCreateCmd = &cobra.Command{
 func init() {
 	accountCmd.AddCommand(accountCreateCmd)
 	accountCreateCmd.Flags().StringP("name", "n", "", "Name of the account")
-	accountCreateCmd.Flags().Float64P("balance", "b", 1, "Initial balance of hbar")
-	viper.BindPFlag("name", accountCreateCmd.Flags().Lookup("name"))
 	accountCreateCmd.MarkFlagRequired("name")
-	viper.BindPFlag("balance", accountCreateCmd.Flags().Lookup("balance"))
+	accountCreateCmd.Flags().Float64P("balance", "b", 1, "Initial balance of hbar")
 	accountCreateCmd.MarkFlagRequired("balance")
 }

@@ -38,9 +38,15 @@ var tokenCmd = &cobra.Command{
 	Use:   "token",
 	Short: "Allow to interact with token service",
 	Long:  `Allow to interact with token service`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		viper.BindPFlag("operator_id", cmd.Flags().Lookup("operator_id"))
+		viper.BindPFlag("operator_key", cmd.Flags().Lookup("operator_key"))
+		viper.BindEnv("operator_id")
+		viper.BindEnv("operator_key")
+	},
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		if viper.Get("operator_id") == "" && viper.Get("operator_key") == "" {
-			return errors.New("Required operator account id and/or private key not set ")
+			return errors.New("required operator account id and/or private key not set ")
 		}
 
 		loadTokenFromConfig()
@@ -68,9 +74,4 @@ func init() {
 	rootCmd.AddCommand(tokenCmd)
 	tokenCmd.Flags().String("operator_id", "", "Operator account id")
 	tokenCmd.Flags().String("operator_key", "", "Operator account private key")
-
-	_ = viper.BindPFlag("operator_id", tokenCmd.Flags().Lookup("operator_id"))
-	_ = viper.BindPFlag("operator_key", tokenCmd.Flags().Lookup("operator_key"))
-	_ = viper.BindEnv("operator_id")
-	_ = viper.BindEnv("operator_key")
 }

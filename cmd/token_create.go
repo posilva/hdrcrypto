@@ -23,9 +23,10 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"hdrcrypto/pkg/hedera"
+
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
-	"hdrcrypto/pkg/hedera"
 )
 
 var tokenCreateCmd = &cobra.Command{
