@@ -23,6 +23,8 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"hdrcrypto/pkg/hederalib"
+
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -33,13 +35,19 @@ var tokenTransferCmd = &cobra.Command{
 	Short: "Command to trasfer a Fungible Token.",
 	Long:  `Command to transfer a Fungible Token.`,
 	PreRun: func(cmd *cobra.Command, args []string) {
-		viper.BindPFlag("key", cmd.Flags().Lookup("key"))
 		viper.BindPFlag("amount-value", cmd.Flags().Lookup("amount-value"))
 		viper.BindPFlag("account", cmd.Flags().Lookup("account"))
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 
-		cmd.ParseFlags(args)
+		err := hederalib.TokenTransfer(hdrClient,
+			activeToken.Id.String(),
+			viper.GetString("account"),
+			viper.GetFloat64("amount-value"))
+
+		if err != nil {
+			log.Error().Msgf("%v", err)
+		}
 		log.Logger.Info().Msgf("processing transfer: %v", args)
 	},
 }
@@ -48,9 +56,6 @@ func init() {
 	tokenCmd.AddCommand(tokenTransferCmd)
 	tokenTransferCmd.Flags().StringP("account", "a", "", "Target account to transfer token ammount to")
 	tokenTransferCmd.MarkFlagRequired("account")
-
-	tokenTransferCmd.Flags().StringP("key", "k", "", "Target account private key to transfer token amount to")
-	tokenTransferCmd.MarkFlagRequired("key")
 
 	tokenTransferCmd.Flags().StringP("amount-value", "v", "", "Amount to be transfered to target account")
 	tokenTransferCmd.MarkFlagRequired("amount-value")

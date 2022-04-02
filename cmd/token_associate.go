@@ -25,43 +25,38 @@ package cmd
 import (
 	"hdrcrypto/pkg/hederalib"
 
-	"github.com/hashgraph/hedera-sdk-go/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-var tokenBalanceCmd = &cobra.Command{
-	Use:   "balance",
-	Short: "Command to get the Fungible Token balance to a given token.",
-	Long:  `Command to get the Fungible Token balance to a given token.`,
+var tokenAssociateCmd = &cobra.Command{
+	Use:   "associate",
+	Short: "Command to trasfer a Fungible Token.",
+	Long:  `Command to transfer a Fungible Token.`,
 	PreRun: func(cmd *cobra.Command, args []string) {
+		viper.BindPFlag("key", cmd.Flags().Lookup("key"))
 		viper.BindPFlag("account", cmd.Flags().Lookup("account"))
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		//TODO: we may have an abstraction leak
-		account := hdrClient.OperatorAccount()
-		if viper.IsSet("account") {
-			accountFlag := viper.GetString("account")
-			a, err := hedera.AccountIDFromString(accountFlag)
-			if err != nil {
-				panic(err)
-			}
-			account = a
-		}
 
-		accountBalance, err := hederalib.GetAccountBalances(hdrClient, account)
+		err := hederalib.TokenAssociate(hdrClient,
+			activeToken.Id.String(),
+			viper.GetString("account"),
+			viper.GetString("key"))
+
 		if err != nil {
 			log.Error().Msgf("%v", err)
-			return
 		}
-
-		log.Info().Msgf("The [%v] token account balance for account '%v' is %v", activeToken.Config.Symbol, account, accountBalance.Tokens.Get(activeToken.Id))
-		log.Info().Msgf("The HBAR account balance for this account '%v' is %v", account, accountBalance.Hbars.String())
 	},
 }
 
 func init() {
-	tokenCmd.AddCommand(tokenBalanceCmd)
-	tokenBalanceCmd.Flags().StringP("account", "a", "", "Target Account Id")
+	tokenCmd.AddCommand(tokenAssociateCmd)
+	tokenAssociateCmd.Flags().StringP("account", "a", "", "Target account to associate to token")
+	tokenAssociateCmd.MarkFlagRequired("account")
+
+	tokenAssociateCmd.Flags().StringP("key", "k", "", "Target account private key to associate to token")
+	tokenAssociateCmd.MarkFlagRequired("key")
+
 }

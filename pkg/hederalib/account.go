@@ -44,3 +44,15 @@ func (a AccountEntity) String() string {
 		a.Account.String(),
 		a.PrivateKey.StringRaw())
 }
+
+func GetAccountBalances(client *HDRClient, account hedera.AccountID) (hedera.AccountBalance, error) {
+	query := hedera.NewAccountBalanceQuery().
+		SetAccountID(account)
+
+	balances, err := query.Execute(client.Get())
+	if err != nil {
+		return hedera.AccountBalance{}, err
+	}
+	return balances, nil
+
+}
